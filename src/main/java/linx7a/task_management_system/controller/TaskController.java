@@ -6,10 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -45,5 +42,20 @@ public class TaskController {
         var tasks = taskService.getAll();
         log.info("getAll успешно завершён, найдено задач: {}", tasks.size());
         return ResponseEntity.ok(tasks);
+    }
+
+    @PostMapping
+    public ResponseEntity<Task> createTask(
+            @RequestBody Task taskToCreate
+    ) {
+        log.info("Вызван createTask");
+        try {
+            var newTask = taskService.createTask(taskToCreate);
+            log.info("createTask успешно выполнен, id={}", newTask.id());
+            return ResponseEntity.status(HttpStatus.CREATED).body(newTask);
+        } catch (IllegalArgumentException e) {
+            log.warn("Не удалось создать задачу: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
