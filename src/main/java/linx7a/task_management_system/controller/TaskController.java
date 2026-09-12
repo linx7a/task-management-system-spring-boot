@@ -58,4 +58,24 @@ public class TaskController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Task> updateTask(
+            @PathVariable Long id,
+            @RequestBody Task taskToUpdate,
+            @RequestParam(defaultValue = "false") boolean forceOpen
+            ) {
+        log.info("Вызван updateTask id={}, taskToUpdate={}", id, taskToUpdate);
+        try {
+            var updated = taskService.updateTask(id, taskToUpdate, forceOpen);
+            log.info("updateTask успешно выполнен.");
+            return ResponseEntity.ok(updated);
+        } catch (NoSuchElementException e) {
+            log.warn("Задача с id={} не найдена.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            log.warn("Не удалось обновить задачу: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
 }
