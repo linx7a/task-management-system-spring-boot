@@ -108,5 +108,12 @@ public class TaskService {
             case DONE -> next == Status.IN_PROGRESS;
         };
     }
+
+    public void deleteTask(Long id) {
+        if (!taskMap.containsKey(id)) {
+            throw new NoSuchElementException("Задача с id: " + id + " не найдена.");
+        }
+        taskMap.remove(id);
+    }
 }
 

@@ -97,4 +97,19 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(
+            @PathVariable Long id
+    ) {
+        log.info("Вызван deleteTask id={}", id);
+        try {
+            taskService.deleteTask(id);
+            log.info("deleteTask успешно выполнен.");
+            return ResponseEntity.noContent().build();
+        } catch (NoSuchElementException e) {
+            log.warn("Задача с id={} не найдена.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }
