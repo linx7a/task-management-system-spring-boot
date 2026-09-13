@@ -51,7 +51,7 @@ public class TaskService {
         return newTask;
     }
 
-    public Task updateTask(Long id, Task taskToUpdate, boolean forceReopen) {
+    public Task updateTask(Long id, Task taskToUpdate) {
         if (!taskMap.containsKey(id)) {
             throw new NoSuchElementException("Задача с id: " + id + " не найдена.");
         }
@@ -60,20 +60,9 @@ public class TaskService {
         }
         var task = taskMap.get(id);
         if (task.status() == Status.DONE) {
-            if (!forceReopen) {
-                throw new IllegalArgumentException(
-                        "Задача с id: " + id + " завершена и не может быть изменена. " +
-                                "Передайте forceReopen=true, чтобы вернуть её в IN_PROGRESS."
-                );
-            }
-            task = new Task(
-                    task.id(),
-                    task.creatorId(),
-                    task.assignedUserId(),
-                    Status.IN_PROGRESS,
-                    task.createDateTime(),
-                    task.deadlineDate(),
-                    task.priority()
+            throw new IllegalArgumentException(
+                    "Задача с id: " + id + " завершена и не может быть изменена. " +
+                            "Измените статус задачи на IN_PROGRESS, чтобы продолжить ее редактирование."
             );
         }
         var updatedTask = new Task(
@@ -112,7 +101,7 @@ public class TaskService {
     }
 
 
-    private boolean isValidTransition(Status current, Status next){
+    private boolean isValidTransition(Status current, Status next) {
         return switch (current) {
             case CREATED -> next == Status.IN_PROGRESS;
             case IN_PROGRESS -> next == Status.DONE || next == Status.CREATED;

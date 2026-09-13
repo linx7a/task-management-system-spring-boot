@@ -63,12 +63,11 @@ public class TaskController {
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(
             @PathVariable Long id,
-            @RequestBody Task taskToUpdate,
-            @RequestParam(defaultValue = "false") boolean forceOpen
+            @RequestBody Task taskToUpdate
     ) {
         log.info("Вызван updateTask id={}, taskToUpdate={}", id, taskToUpdate);
         try {
-            var updated = taskService.updateTask(id, taskToUpdate, forceOpen);
+            var updated = taskService.updateTask(id, taskToUpdate);
             log.info("updateTask успешно выполнен.");
             return ResponseEntity.ok(updated);
         } catch (NoSuchElementException e) {
