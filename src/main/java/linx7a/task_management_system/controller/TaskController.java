@@ -1,5 +1,6 @@
 package linx7a.task_management_system.controller;
 
+import linx7a.task_management_system.model.Status;
 import linx7a.task_management_system.model.Task;
 import linx7a.task_management_system.service.TaskService;
 import org.slf4j.Logger;
@@ -64,7 +65,7 @@ public class TaskController {
             @PathVariable Long id,
             @RequestBody Task taskToUpdate,
             @RequestParam(defaultValue = "false") boolean forceOpen
-            ) {
+    ) {
         log.info("Вызван updateTask id={}, taskToUpdate={}", id, taskToUpdate);
         try {
             var updated = taskService.updateTask(id, taskToUpdate, forceOpen);
@@ -75,6 +76,25 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (IllegalArgumentException e) {
             log.warn("Не удалось обновить задачу: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Task> changeStatus(
+            @PathVariable Long id,
+            @RequestParam Status status
+    ) {
+        log.info("Вызван changeStatus id={}, taskToUpdate={}", id, status);
+        try {
+            var updated = taskService.changeStatus(id, status);
+            log.info("changeStatus успешно выполнен. Новый статус задачи с id={}: {}", id, status);
+            return ResponseEntity.ok(updated);
+        } catch (NoSuchElementException e) {
+            log.warn("Задача с id={} не найдена.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalStateException e) {
+            log.warn("Не удалось обновить статус задачи: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }

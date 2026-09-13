@@ -4,7 +4,10 @@ import linx7a.task_management_system.model.Status;
 import linx7a.task_management_system.model.Task;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -84,6 +87,37 @@ public class TaskService {
         );
         taskMap.put(id, updatedTask);
         return updatedTask;
+    }
+
+    public Task changeStatus(Long id, Status newStatus) {
+        if (!taskMap.containsKey(id)) {
+            throw new NoSuchElementException("Задача с id: " + id + " не найдена.");
+        }
+        var task = taskMap.get(id);
+        if (!isValidTransition(task.status(), newStatus)) {
+            throw new IllegalStateException("Недопустимый переход статуса: " + task.status()
+                    + " -> " + newStatus);
+        }
+        var updatedTask = new Task(
+                task.id(),
+                task.creatorId(),
+                task.assignedUserId(),
+                newStatus,
+                task.createDateTime(),
+                task.deadlineDate(),
+                task.priority()
+        );
+        taskMap.put(id, updatedTask);
+        return updatedTask;
+    }
+
+
+    private boolean isValidTransition(Status current, Status next){
+        return switch (current) {
+            case CREATED -> next == Status.IN_PROGRESS;
+            case IN_PROGRESS -> next == Status.DONE || next == Status.CREATED;
+            case DONE -> next == Status.IN_PROGRESS;
+        };
     }
 }
 
