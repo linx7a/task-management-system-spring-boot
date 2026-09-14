@@ -1,34 +1,33 @@
 package linx7a.task_management_system.service;
 
+import linx7a.task_management_system.entity.TaskEntity;
 import linx7a.task_management_system.model.Status;
 import linx7a.task_management_system.model.Task;
+import linx7a.task_management_system.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TaskService {
-    private final Map<Long, Task> taskMap;
-    private final AtomicLong idCounter;
+    private final TaskRepository taskRepository;
 
-    public TaskService() {
-        taskMap = new HashMap<>();
-        idCounter = new AtomicLong();
+    public TaskService(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
     }
 
     public Task getById(Long id) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException("Задача с id: " + id + " не найдена.");
-        }
-        return taskMap.get(id);
+        TaskEntity taskEntity = taskRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Задача с id: " + id + " не найдена."));
+        return toDomainTask(taskEntity);
     }
 
     public List<Task> getAll() {
-        return taskMap.values().stream().toList();
+        List<TaskEntity> allEntities = taskRepository.findAll();
+        return allEntities.stream()
+                .map(it -> toDomainTask(it))
+                .toList();
     }
 
     public Task createTask(Task taskToCreate) {
@@ -38,8 +37,8 @@ public class TaskService {
         if (taskToCreate.status() != null) {
             throw new IllegalArgumentException("Статус должен быть пустым");
         }
-        var newTask = new Task(
-                idCounter.incrementAndGet(),
+        var newTaskEntity = new TaskEntity(
+                null,
                 taskToCreate.creatorId(),
                 taskToCreate.assignedUserId(),
                 Status.CREATED,
@@ -47,59 +46,55 @@ public class TaskService {
                 taskToCreate.deadlineDate(),
                 taskToCreate.priority()
         );
-        taskMap.put(newTask.id(), newTask);
-        return newTask;
+        var saved = taskRepository.save(newTaskEntity);
+        return toDomainTask(saved);
     }
 
     public Task updateTask(Long id, Task taskToUpdate) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException("Задача с id: " + id + " не найдена.");
-        }
+        TaskEntity taskEntity = taskRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Задача с id: " + id + " не найдена."));
         if (taskToUpdate.id() != null) {
             throw new IllegalArgumentException("id должен быть пустым.");
         }
-        var task = taskMap.get(id);
-        if (task.status() == Status.DONE) {
+        if (taskEntity.getStatus() == Status.DONE) {
             throw new IllegalArgumentException(
                     "Задача с id: " + id + " завершена и не может быть изменена. " +
                             "Измените статус задачи на IN_PROGRESS, чтобы продолжить ее редактирование."
             );
         }
-        var updatedTask = new Task(
-                task.id(),
+        var updatedTaskEntity = new TaskEntity(
+                taskEntity.getId(),
                 taskToUpdate.creatorId(),
                 taskToUpdate.assignedUserId(),
-                task.status(),
+                taskEntity.getStatus(),
                 taskToUpdate.createDateTime(),
                 taskToUpdate.deadlineDate(),
                 taskToUpdate.priority()
         );
-        taskMap.put(id, updatedTask);
-        return updatedTask;
+        var saved = taskRepository.save(updatedTaskEntity);
+        return toDomainTask(saved);
     }
 
     public Task changeStatus(Long id, Status newStatus) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException("Задача с id: " + id + " не найдена.");
-        }
-        var task = taskMap.get(id);
-        if (!isValidTransition(task.status(), newStatus)) {
-            throw new IllegalStateException("Недопустимый переход статуса: " + task.status()
+        TaskEntity taskEntity = taskRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Задача с id: " + id + " не найдена."));
+
+        if (!isValidTransition(taskEntity.getStatus(), newStatus)) {
+            throw new IllegalStateException("Недопустимый переход статуса: " + taskEntity.getStatus()
                     + " -> " + newStatus);
         }
-        var updatedTask = new Task(
-                task.id(),
-                task.creatorId(),
-                task.assignedUserId(),
+        var updatedTaskEntity = new TaskEntity(
+                taskEntity.getId(),
+                taskEntity.getCreatorId(),
+                taskEntity.getAssignedUserId(),
                 newStatus,
-                task.createDateTime(),
-                task.deadlineDate(),
-                task.priority()
+                taskEntity.getCreateDateTime(),
+                taskEntity.getDeadlineDate(),
+                taskEntity.getPriority()
         );
-        taskMap.put(id, updatedTask);
-        return updatedTask;
+        var saved = taskRepository.save(updatedTaskEntity);
+        return toDomainTask(saved);
     }
-
 
     private boolean isValidTransition(Status current, Status next) {
         return switch (current) {
@@ -110,10 +105,23 @@ public class TaskService {
     }
 
     public void deleteTask(Long id) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException("Задача с id: " + id + " не найдена.");
-        }
-        taskMap.remove(id);
+        TaskEntity taskEntity = taskRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Задача с id: " + id + " не найдена."));
+        taskRepository.deleteById(id);
+    }
+
+    private Task toDomainTask(
+            TaskEntity taskEntity
+    ) {
+        return new Task(
+                taskEntity.getId(),
+                taskEntity.getCreatorId(),
+                taskEntity.getAssignedUserId(),
+                taskEntity.getStatus(),
+                taskEntity.getCreateDateTime(),
+                taskEntity.getDeadlineDate(),
+                taskEntity.getPriority()
+        );
     }
 }
 

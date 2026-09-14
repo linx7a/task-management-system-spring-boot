@@ -30,7 +30,8 @@ public class TaskEntity {
     public TaskEntity() {
     }
 
-    public TaskEntity(Long creatorId, Long assignedUserId, Status status, LocalDateTime createDateTime, LocalDateTime deadlineDate, Priority priority) {
+    public TaskEntity(Long id, Long creatorId, Long assignedUserId, Status status, LocalDateTime createDateTime, LocalDateTime deadlineDate, Priority priority) {
+        this.id = id;
         this.creatorId = creatorId;
         this.assignedUserId = assignedUserId;
         this.status = status;
