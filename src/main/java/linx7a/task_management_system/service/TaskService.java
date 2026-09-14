@@ -110,6 +110,20 @@ public class TaskService {
         taskRepository.deleteById(id);
     }
 
+    public Task startTask(Long id) {
+        TaskEntity taskEntity = taskRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Задача с id: " + id + " не найдена."));
+        if (taskEntity.getAssignedUserId() == null) {
+            throw new IllegalArgumentException("У задачи не назначен исполнитель.");
+        }
+        long activeCount = taskRepository
+                .countByAssignedUserIdAndStatus(taskEntity.getAssignedUserId(), Status.IN_PROGRESS);
+        if (activeCount >= 4) {
+            throw new IllegalArgumentException("У пользователя уже 4 активные задачи в статусе IN_PROGRESS.");
+        }
+        return changeStatus(id, Status.IN_PROGRESS);
+    }
+
     private Task toDomainTask(
             TaskEntity taskEntity
     ) {

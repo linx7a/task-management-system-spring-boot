@@ -1,5 +1,6 @@
 package linx7a.task_management_system.controller;
 
+import linx7a.task_management_system.entity.TaskEntity;
 import linx7a.task_management_system.model.Status;
 import linx7a.task_management_system.model.Task;
 import linx7a.task_management_system.service.TaskService;
@@ -110,6 +111,24 @@ public class TaskController {
         } catch (NoSuchElementException e) {
             log.warn("Задача с id={} не найдена.", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PostMapping("/{id}/start")
+    public ResponseEntity<Task> startTask(
+            @PathVariable Long id
+    ) {
+        log.info("Вызван startTask id={}", id);
+        try {
+            var started = taskService.startTask(id);
+            log.info("startTask успешно выполнен.");
+            return ResponseEntity.ok(started);
+        } catch (NoSuchElementException e) {
+            log.warn("Задача с id={} не найдена.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            log.warn("Не удалось запустить задачу: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }
