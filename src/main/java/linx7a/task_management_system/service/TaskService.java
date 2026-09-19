@@ -118,7 +118,7 @@ public class TaskService {
         }
         long activeCount = taskRepository
                 .countByAssignedUserIdAndStatus(taskEntity.getAssignedUserId(), Status.IN_PROGRESS);
-        if (activeCount >= 4) {
+        if (activeCount >= 5) {
             throw new IllegalArgumentException("У пользователя уже 4 активные задачи в статусе IN_PROGRESS.");
         }
         return changeStatus(id, Status.IN_PROGRESS);
