@@ -1,6 +1,6 @@
 package linx7a.task_management_system.controller;
 
-import linx7a.task_management_system.entity.TaskEntity;
+import jakarta.validation.Valid;
 import linx7a.task_management_system.model.Status;
 import linx7a.task_management_system.model.Task;
 import linx7a.task_management_system.service.TaskService;
@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/tasks")
@@ -27,15 +26,8 @@ public class TaskController {
     public ResponseEntity<Task> getById(
             @PathVariable Long id) {
         log.info("Вызван getById с id={}", id);
-        try {
-            var task = taskService.getById(id);
-            log.info("getById успешно завершён, id={}", id);
-            return ResponseEntity.ok(task);
-
-        } catch (NoSuchElementException e) {
-            log.warn("getById: задача с id={} не найдена", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        var task = taskService.getById(id);
+        return ResponseEntity.ok(task);
     }
 
     @GetMapping
@@ -48,36 +40,23 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<Task> createTask(
-            @RequestBody Task taskToCreate
+            @RequestBody @Valid Task taskToCreate
     ) {
         log.info("Вызван createTask");
-        try {
-            var newTask = taskService.createTask(taskToCreate);
-            log.info("createTask успешно выполнен, id={}", newTask.id());
-            return ResponseEntity.status(HttpStatus.CREATED).body(newTask);
-        } catch (IllegalArgumentException e) {
-            log.warn("Не удалось создать задачу: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        var newTask = taskService.createTask(taskToCreate);
+        log.info("createTask успешно выполнен, id={}", newTask.id());
+        return ResponseEntity.status(HttpStatus.CREATED).body(newTask);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(
             @PathVariable Long id,
-            @RequestBody Task taskToUpdate
+            @RequestBody @Valid Task taskToUpdate
     ) {
         log.info("Вызван updateTask id={}, taskToUpdate={}", id, taskToUpdate);
-        try {
-            var updated = taskService.updateTask(id, taskToUpdate);
-            log.info("updateTask успешно выполнен.");
-            return ResponseEntity.ok(updated);
-        } catch (NoSuchElementException e) {
-            log.warn("Задача с id={} не найдена.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException e) {
-            log.warn("Не удалось обновить задачу: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        var updated = taskService.updateTask(id, taskToUpdate);
+        log.info("updateTask успешно выполнен.");
+        return ResponseEntity.ok(updated);
     }
 
     @PatchMapping("/{id}/status")
@@ -86,17 +65,9 @@ public class TaskController {
             @RequestParam Status status
     ) {
         log.info("Вызван changeStatus id={}, taskToUpdate={}", id, status);
-        try {
-            var updated = taskService.changeStatus(id, status);
-            log.info("changeStatus успешно выполнен. Новый статус задачи с id={}: {}", id, status);
-            return ResponseEntity.ok(updated);
-        } catch (NoSuchElementException e) {
-            log.warn("Задача с id={} не найдена.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalStateException e) {
-            log.warn("Не удалось обновить статус задачи: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        var updated = taskService.changeStatus(id, status);
+        log.info("changeStatus успешно выполнен. Новый статус задачи с id={}: {}", id, status);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
@@ -104,14 +75,10 @@ public class TaskController {
             @PathVariable Long id
     ) {
         log.info("Вызван deleteTask id={}", id);
-        try {
-            taskService.deleteTask(id);
-            log.info("deleteTask успешно выполнен.");
-            return ResponseEntity.noContent().build();
-        } catch (NoSuchElementException e) {
-            log.warn("Задача с id={} не найдена.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        taskService.deleteTask(id);
+        log.info("deleteTask успешно выполнен.");
+        return ResponseEntity.noContent().build();
+
     }
 
     @PostMapping("/{id}/start")
@@ -119,16 +86,8 @@ public class TaskController {
             @PathVariable Long id
     ) {
         log.info("Вызван startTask id={}", id);
-        try {
-            var started = taskService.startTask(id);
-            log.info("startTask успешно выполнен.");
-            return ResponseEntity.ok(started);
-        } catch (NoSuchElementException e) {
-            log.warn("Задача с id={} не найдена.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException e) {
-            log.warn("Не удалось запустить задачу: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        var started = taskService.startTask(id);
+        log.info("startTask успешно выполнен.");
+        return ResponseEntity.ok(started);
     }
 }
