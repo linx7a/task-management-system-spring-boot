@@ -90,4 +90,14 @@ public class TaskController {
         log.info("startTask успешно выполнен.");
         return ResponseEntity.ok(started);
     }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Task> completeTask(
+            @PathVariable Long id
+    ) {
+        log.info("Вызван completeTask id={}", id);
+        var completed = taskService.completeTask(id);
+        log.info("completeTask успешно выполнен.");
+        return ResponseEntity.ok(completed);
+    }
 }

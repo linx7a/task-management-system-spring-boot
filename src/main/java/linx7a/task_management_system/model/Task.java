@@ -17,6 +17,7 @@ public record Task(
         @Future
         LocalDateTime deadlineDate,
         @NotNull
-        Priority priority
+        Priority priority,
+        LocalDateTime doneDateTime
 ) {
 }

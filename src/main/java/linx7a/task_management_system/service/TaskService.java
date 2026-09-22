@@ -6,6 +6,7 @@ import linx7a.task_management_system.model.Task;
 import linx7a.task_management_system.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -44,7 +45,8 @@ public class TaskService {
                 Status.CREATED,
                 taskToCreate.createDateTime(),
                 taskToCreate.deadlineDate(),
-                taskToCreate.priority()
+                taskToCreate.priority(),
+                null
         );
         var saved = taskRepository.save(newTaskEntity);
         return toDomainTask(saved);
@@ -69,7 +71,8 @@ public class TaskService {
                 taskEntity.getStatus(),
                 taskToUpdate.createDateTime(),
                 taskToUpdate.deadlineDate(),
-                taskToUpdate.priority()
+                taskToUpdate.priority(),
+                taskEntity.getDoneDateTime()
         );
         var saved = taskRepository.save(updatedTaskEntity);
         return toDomainTask(saved);
@@ -90,7 +93,8 @@ public class TaskService {
                 newStatus,
                 taskEntity.getCreateDateTime(),
                 taskEntity.getDeadlineDate(),
-                taskEntity.getPriority()
+                taskEntity.getPriority(),
+                null
         );
         var saved = taskRepository.save(updatedTaskEntity);
         return toDomainTask(saved);
@@ -99,7 +103,7 @@ public class TaskService {
     private boolean isValidTransition(Status current, Status next) {
         return switch (current) {
             case CREATED -> next == Status.IN_PROGRESS;
-            case IN_PROGRESS -> next == Status.DONE || next == Status.CREATED;
+            case IN_PROGRESS -> next == Status.CREATED;
             case DONE -> next == Status.IN_PROGRESS;
         };
     }
@@ -124,6 +128,33 @@ public class TaskService {
         return changeStatus(id, Status.IN_PROGRESS);
     }
 
+    public Task completeTask(Long id) {
+        TaskEntity taskEntity = taskRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Задача с id: " + id + " не найдена."));
+        if (taskEntity.getAssignedUserId() == null) {
+            throw new IllegalArgumentException("Нельзя завершить задачу: не назначен исполнитель.");
+        }
+        if (taskEntity.getDeadlineDate() == null) {
+            throw new IllegalArgumentException("Нельзя завершить задачу: не указан дедлайн.");
+        }
+        if (taskEntity.getStatus() != Status.IN_PROGRESS) {
+            throw new IllegalStateException("Недопустимый переход статуса: "
+                    + taskEntity.getStatus() + " -> DONE.");
+        }
+        var doneTaskEntity = new TaskEntity(
+                taskEntity.getId(),
+                taskEntity.getCreatorId(),
+                taskEntity.getAssignedUserId(),
+                Status.DONE,
+                taskEntity.getCreateDateTime(),
+                taskEntity.getDeadlineDate(),
+                taskEntity.getPriority(),
+                LocalDateTime.now()
+        );
+        var completed = taskRepository.save(doneTaskEntity);
+        return toDomainTask(completed);
+    }
+
     private Task toDomainTask(
             TaskEntity taskEntity
     ) {
@@ -134,8 +165,11 @@ public class TaskService {
                 taskEntity.getStatus(),
                 taskEntity.getCreateDateTime(),
                 taskEntity.getDeadlineDate(),
-                taskEntity.getPriority()
+                taskEntity.getPriority(),
+                taskEntity.getDoneDateTime()
         );
     }
+
+
 }
 
