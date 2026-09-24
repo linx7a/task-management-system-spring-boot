@@ -1,4 +1,4 @@
-package linx7a.task_management_system.exception;
+package linx7a.task_management_system.web;
 
 import java.time.LocalDateTime;
 

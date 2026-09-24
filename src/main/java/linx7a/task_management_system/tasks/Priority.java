@@ -1,4 +1,4 @@
-package linx7a.task_management_system.model;
+package linx7a.task_management_system.tasks;
 
 public enum Priority {
     LOW,

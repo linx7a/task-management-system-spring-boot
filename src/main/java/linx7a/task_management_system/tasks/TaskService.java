@@ -1,9 +1,9 @@
-package linx7a.task_management_system.service;
+package linx7a.task_management_system.tasks;
 
-import linx7a.task_management_system.entity.TaskEntity;
-import linx7a.task_management_system.model.Status;
-import linx7a.task_management_system.model.Task;
-import linx7a.task_management_system.repository.TaskRepository;
+import linx7a.task_management_system.tasks.TaskEntity;
+import linx7a.task_management_system.tasks.Status;
+import linx7a.task_management_system.tasks.Task;
+import linx7a.task_management_system.tasks.TaskRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

@@ -1,9 +1,6 @@
-package linx7a.task_management_system.controller;
+package linx7a.task_management_system.tasks;
 
 import jakarta.validation.Valid;
-import linx7a.task_management_system.model.Status;
-import linx7a.task_management_system.model.Task;
-import linx7a.task_management_system.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

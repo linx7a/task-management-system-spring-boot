@@ -1,8 +1,6 @@
-package linx7a.task_management_system.entity;
+package linx7a.task_management_system.tasks;
 
 import jakarta.persistence.*;
-import linx7a.task_management_system.model.Priority;
-import linx7a.task_management_system.model.Status;
 
 import java.time.LocalDateTime;
 

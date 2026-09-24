@@ -1,7 +1,7 @@
-package linx7a.task_management_system.repository;
+package linx7a.task_management_system.tasks;
 
-import linx7a.task_management_system.entity.TaskEntity;
-import linx7a.task_management_system.model.Status;
+import linx7a.task_management_system.tasks.TaskEntity;
+import linx7a.task_management_system.tasks.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TaskRepository extends JpaRepository<TaskEntity, Long> {

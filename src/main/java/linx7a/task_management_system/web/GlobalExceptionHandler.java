@@ -1,4 +1,4 @@
-package linx7a.task_management_system.exception;
+package linx7a.task_management_system.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
