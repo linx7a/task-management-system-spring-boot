@@ -1,11 +1,6 @@
 package linx7a.task_management_system.tasks;
 
-import linx7a.task_management_system.tasks.TaskEntity;
-import linx7a.task_management_system.tasks.Status;
-import linx7a.task_management_system.tasks.Task;
-import linx7a.task_management_system.tasks.TaskRepository;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -13,21 +8,23 @@ import java.util.NoSuchElementException;
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
+    private final TaskMapper mapper;
 
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(TaskRepository taskRepository, TaskMapper mapper) {
         this.taskRepository = taskRepository;
+        this.mapper = mapper;
     }
 
     public Task getById(Long id) {
         TaskEntity taskEntity = taskRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Задача с id: " + id + " не найдена."));
-        return toDomainTask(taskEntity);
+        return mapper.toDomain(taskEntity);
     }
 
     public List<Task> getAll() {
         List<TaskEntity> allEntities = taskRepository.findAll();
         return allEntities.stream()
-                .map(it -> toDomainTask(it))
+                .map(it -> mapper.toDomain(it))
                 .toList();
     }
 
@@ -38,18 +35,12 @@ public class TaskService {
         if (taskToCreate.status() != null) {
             throw new IllegalArgumentException("Статус должен быть пустым");
         }
-        var newTaskEntity = new TaskEntity(
-                null,
-                taskToCreate.creatorId(),
-                taskToCreate.assignedUserId(),
-                Status.CREATED,
-                taskToCreate.createDateTime(),
-                taskToCreate.deadlineDate(),
-                taskToCreate.priority(),
-                null
-        );
+        var newTaskEntity = mapper.toEntity(taskToCreate);
+        newTaskEntity.setId(null);
+        newTaskEntity.setStatus(Status.CREATED);
+        newTaskEntity.setDoneDateTime(null);
         var saved = taskRepository.save(newTaskEntity);
-        return toDomainTask(saved);
+        return mapper.toDomain(saved);
     }
 
     public Task updateTask(Long id, Task taskToUpdate) {
@@ -64,18 +55,12 @@ public class TaskService {
                             "Измените статус задачи на IN_PROGRESS, чтобы продолжить ее редактирование."
             );
         }
-        var updatedTaskEntity = new TaskEntity(
-                taskEntity.getId(),
-                taskToUpdate.creatorId(),
-                taskToUpdate.assignedUserId(),
-                taskEntity.getStatus(),
-                taskToUpdate.createDateTime(),
-                taskToUpdate.deadlineDate(),
-                taskToUpdate.priority(),
-                taskEntity.getDoneDateTime()
-        );
+        var updatedTaskEntity = mapper.toEntity(taskToUpdate);
+        updatedTaskEntity.setId(taskEntity.getId());
+        updatedTaskEntity.setStatus(taskEntity.getStatus());
+        updatedTaskEntity.setDoneDateTime(taskEntity.getDoneDateTime());
         var saved = taskRepository.save(updatedTaskEntity);
-        return toDomainTask(saved);
+        return mapper.toDomain(saved);
     }
 
     public Task changeStatus(Long id, Status newStatus) {
@@ -86,18 +71,10 @@ public class TaskService {
             throw new IllegalStateException("Недопустимый переход статуса: " + taskEntity.getStatus()
                     + " -> " + newStatus);
         }
-        var updatedTaskEntity = new TaskEntity(
-                taskEntity.getId(),
-                taskEntity.getCreatorId(),
-                taskEntity.getAssignedUserId(),
-                newStatus,
-                taskEntity.getCreateDateTime(),
-                taskEntity.getDeadlineDate(),
-                taskEntity.getPriority(),
-                null
-        );
-        var saved = taskRepository.save(updatedTaskEntity);
-        return toDomainTask(saved);
+        taskEntity.setStatus(newStatus);
+        taskEntity.setDoneDateTime(null);
+        var saved = taskRepository.save(taskEntity);
+        return mapper.toDomain(saved);
     }
 
     private boolean isValidTransition(Status current, Status next) {
@@ -141,35 +118,10 @@ public class TaskService {
             throw new IllegalStateException("Недопустимый переход статуса: "
                     + taskEntity.getStatus() + " -> DONE.");
         }
-        var doneTaskEntity = new TaskEntity(
-                taskEntity.getId(),
-                taskEntity.getCreatorId(),
-                taskEntity.getAssignedUserId(),
-                Status.DONE,
-                taskEntity.getCreateDateTime(),
-                taskEntity.getDeadlineDate(),
-                taskEntity.getPriority(),
-                LocalDateTime.now()
-        );
-        var completed = taskRepository.save(doneTaskEntity);
-        return toDomainTask(completed);
+        taskEntity.setStatus(Status.DONE);
+        taskEntity.setDoneDateTime(LocalDateTime.now());
+        var completed = taskRepository.save(taskEntity);
+        return mapper.toDomain(completed);
     }
-
-    private Task toDomainTask(
-            TaskEntity taskEntity
-    ) {
-        return new Task(
-                taskEntity.getId(),
-                taskEntity.getCreatorId(),
-                taskEntity.getAssignedUserId(),
-                taskEntity.getStatus(),
-                taskEntity.getCreateDateTime(),
-                taskEntity.getDeadlineDate(),
-                taskEntity.getPriority(),
-                taskEntity.getDoneDateTime()
-        );
-    }
-
-
 }
 
