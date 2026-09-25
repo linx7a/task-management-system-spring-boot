@@ -28,11 +28,19 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Task>> getAll() {
-        log.info("Вызван getAll");
-        var tasks = taskService.getAll();
-        log.info("getAll успешно завершён, найдено задач: {}", tasks.size());
-        return ResponseEntity.ok(tasks);
+    public ResponseEntity<List<Task>> getAllTasks(
+            @RequestParam(name = "creatorId", required = false) Long creatorId,
+            @RequestParam(name = "assignedUserId", required = false) Long assignedUserId,
+            @RequestParam(name = "status", required = false) Status status,
+            @RequestParam(name = "priority", required = false) Priority priority,
+            @RequestParam(name = "pageSize", required = false) Integer pageSize,
+            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+            ) {
+        var filter = new TaskSearchFilter(creatorId, assignedUserId, status, priority, pageSize, pageNumber);
+        log.info("Вызван getAllTasks с фильтром: {}", filter);
+        var result = taskService.searchAllByFilter(filter);
+        log.info("getAll успешно завершён, найдено задач: {}", result.size());
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping

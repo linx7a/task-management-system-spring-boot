@@ -1,5 +1,6 @@
 package linx7a.task_management_system.tasks;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,8 +22,17 @@ public class TaskService {
         return mapper.toDomain(taskEntity);
     }
 
-    public List<Task> getAll() {
-        List<TaskEntity> allEntities = taskRepository.findAll();
+    public List<Task> searchAllByFilter(TaskSearchFilter filter) {
+        int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
+        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
+        var pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
+        List<TaskEntity> allEntities = taskRepository.searchByFilters(
+                filter.creatorId(),
+                filter.assignedUserId(),
+                filter.status(),
+                filter.priority(),
+                pageable
+        );
         return allEntities.stream()
                 .map(it -> mapper.toDomain(it))
                 .toList();
