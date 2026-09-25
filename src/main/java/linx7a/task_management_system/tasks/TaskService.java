@@ -98,7 +98,7 @@ public class TaskService {
             throw new IllegalArgumentException("У задачи не назначен исполнитель.");
         }
         long activeCount = taskRepository
-                .countByAssignedUserIdAndStatus(taskEntity.getAssignedUserId(), Status.IN_PROGRESS);
+                .countActiveTasks(taskEntity.getAssignedUserId(), Status.IN_PROGRESS);
         if (activeCount >= 5) {
             throw new IllegalArgumentException("У пользователя уже 4 активные задачи в статусе IN_PROGRESS.");
         }
