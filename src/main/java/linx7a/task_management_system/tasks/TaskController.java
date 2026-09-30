@@ -35,7 +35,7 @@ public class TaskController {
             @RequestParam(name = "priority", required = false) Priority priority,
             @RequestParam(name = "pageSize", required = false) Integer pageSize,
             @RequestParam(name = "pageNumber", required = false) Integer pageNumber
-            ) {
+    ) {
         var filter = new TaskSearchFilter(creatorId, assignedUserId, status, priority, pageSize, pageNumber);
         log.info("Вызван getAllTasks с фильтром: {}", filter);
         var result = taskService.searchAllByFilter(filter);
